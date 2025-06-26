@@ -13,7 +13,14 @@ return new class extends Migration
     {
         Schema::create('pages', function (Blueprint $table) {
             $table->id();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->longText('body');
+            $table->enum('status', ['draft', 'published'])->default('draft');
             $table->timestamps();
+
+            $table->index('status');
+            $table->index('slug');
         });
     }
 
