@@ -6,8 +6,7 @@
                     <!-- Header -->
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold text-gray-800">Create New Post</h2>
-                        <a href="{{ route('posts.index') }}"
-                           class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        <a href="{{ route('posts.index') }}" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                             Back to Posts
                         </a>
                     </div>
@@ -23,10 +22,10 @@
                                         Title *
                                     </label>
                                     <input type="text"
-                                           id="title"
-                                           wire:model.live="title"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror"
-                                           placeholder="Enter post title...">
+                                        id="title"
+                                        wire:model.live="title"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('title') border-red-500 @enderror"
+                                        placeholder="Enter post title...">
                                     @error('title')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -38,10 +37,10 @@
                                         Slug *
                                     </label>
                                     <input type="text"
-                                           id="slug"
-                                           wire:model="slug"
-                                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('slug') border-red-500 @enderror"
-                                           placeholder="post-slug">
+                                        id="slug"
+                                        wire:model="slug"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('slug') border-red-500 @enderror"
+                                        placeholder="post-slug">
                                     @error('slug')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -54,10 +53,10 @@
                                         Excerpt
                                     </label>
                                     <textarea id="excerpt"
-                                              wire:model="excerpt"
-                                              rows="3"
-                                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('excerpt') border-red-500 @enderror"
-                                              placeholder="Brief description of the post..."></textarea>
+                                            wire:model="excerpt"
+                                            rows="3"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('excerpt') border-red-500 @enderror"
+                                            placeholder="Brief description of the post..."></textarea>
                                     @error('excerpt')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
@@ -70,8 +69,9 @@
                                     </label>
                                     <div wire:ignore>
                                         <textarea id="content"
-                                                  wire:model="content"
-                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror"></textarea>
+                                            wire:model="content"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror">
+                                        </textarea>
                                     </div>
                                     @error('content')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
@@ -87,10 +87,10 @@
                                             Meta Title
                                         </label>
                                         <input type="text"
-                                               id="meta_title"
-                                               wire:model="meta_title"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('meta_title') border-red-500 @enderror"
-                                               placeholder="SEO title for search engines...">
+                                            id="meta_title"
+                                            wire:model="meta_title"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('meta_title') border-red-500 @enderror"
+                                            placeholder="SEO title for search engines...">
                                         @error('meta_title')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
@@ -103,10 +103,11 @@
                                             Meta Description
                                         </label>
                                         <textarea id="meta_description"
-                                                  wire:model="meta_description"
-                                                  rows="3"
-                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('meta_description') border-red-500 @enderror"
-                                                  placeholder="SEO description for search engines..."></textarea>
+                                            wire:model="meta_description"
+                                            rows="3"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('meta_description') border-red-500 @enderror"
+                                            placeholder="SEO description for search engines...">
+                                        </textarea>
                                         @error('meta_description')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
@@ -140,9 +141,9 @@
                                             Publish Date
                                         </label>
                                         <input type="datetime-local"
-                                               id="published_at"
-                                               wire:model="published_at"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            id="published_at"
+                                            wire:model="published_at"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         <p class="mt-1 text-sm text-gray-500">Leave empty for immediate publish</p>
                                     </div>
 
@@ -169,9 +170,9 @@
 
                                     <div class="mb-4">
                                         <input type="file"
-                                               wire:model="image"
-                                               accept="image/*"
-                                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                            wire:model="image"
+                                            accept="image/*"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                                         @error('image')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
@@ -180,8 +181,8 @@
                                     @if ($image)
                                         <div class="mt-4">
                                             <img src="{{ $image->temporaryUrl() }}"
-                                                 alt="Preview"
-                                                 class="w-full h-32 object-cover rounded-lg">
+                                                alt="Preview"
+                                                class="w-full h-32 object-cover rounded-lg">
                                         </div>
                                     @endif
                                 </div>
@@ -194,9 +195,9 @@
                                         @foreach($categories as $category)
                                             <label class="flex items-center">
                                                 <input type="checkbox"
-                                                       wire:model="selectedCategories"
-                                                       value="{{ $category->id }}"
-                                                       class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                                    wire:model="selectedCategories"
+                                                    value="{{ $category->id }}"
+                                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                                 <span class="ml-2 text-sm text-gray-700">{{ $category->name }}</span>
                                             </label>
                                         @endforeach
@@ -219,20 +220,20 @@
     <!-- Flash Messages -->
     @if (session()->has('message'))
         <div class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
-             x-data="{ show: true }"
-             x-show="show"
-             x-transition
-             x-init="setTimeout(() => show = false, 3000)">
+            x-data="{ show: true }"
+            x-show="show"
+            x-transition
+            x-init="setTimeout(() => show = false, 3000)">
             {{ session('message') }}
         </div>
     @endif
 
     @if (session()->has('error'))
         <div class="fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50"
-             x-data="{ show: true }"
-             x-show="show"
-             x-transition
-             x-init="setTimeout(() => show = false, 3000)">
+            x-data="{ show: true }"
+            x-show="show"
+            x-transition
+            x-init="setTimeout(() => show = false, 3000)">
             {{ session('error') }}
         </div>
     @endif

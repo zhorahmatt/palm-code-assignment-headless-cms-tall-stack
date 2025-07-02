@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Spatie\Sluggable\HasSlug;
 use Spatie\Sluggable\SlugOptions;
+use App\Services\ContentSanitizer;
 
 class Post extends Model
 {
@@ -18,7 +19,10 @@ class Post extends Model
         'excerpt',
         'image',
         'status',
-        'published_at'
+        'published_at',
+        'meta_title',
+        'meta_description',
+        'author_id',
     ];
 
     protected $casts = [
@@ -46,5 +50,19 @@ class Post extends Model
     public function scopeDraft($query)
     {
         return $query->where('status', 'draft');
+    }
+
+    // Automatically sanitize content when setting
+    public function setContentAttribute($value)
+    {
+        $sanitizer = new ContentSanitizer();
+        $this->attributes['content'] = $sanitizer->sanitize($value);
+    }
+
+    // Get sanitized content for public display
+    public function getSanitizedContentAttribute()
+    {
+        $sanitizer = new ContentSanitizer();
+        return $sanitizer->sanitizeForDisplay($this->content);
     }
 }
