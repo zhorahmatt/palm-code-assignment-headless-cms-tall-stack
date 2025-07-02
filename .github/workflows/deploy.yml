@@ -1,0 +1,171 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.3'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql, zip
+        coverage: none
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install NPM dependencies
+      run: npm ci
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Prepare deployment directory
+      run: |
+        # Create a clean deployment directory
+        mkdir -p ../deployment
+
+        # Copy application files (excluding unnecessary files)
+        rsync -av --progress . ../deployment/ \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='tests' \
+          --exclude='.env' \
+          --exclude='*.log' \
+          --exclude='*.tmp' \
+          --exclude='.phpunit.result.cache' \
+          --exclude='storage/logs/*' \
+          --exclude='storage/framework/cache/*' \
+          --exclude='storage/framework/sessions/*' \
+          --exclude='storage/framework/views/*' \
+          --exclude='bootstrap/cache/*'
+
+        # Clean up vendor test directories
+        find ../deployment/vendor -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true
+        find ../deployment/vendor -name "test" -type d -exec rm -rf {} + 2>/dev/null || true
+        find ../deployment/vendor -name ".git" -type d -exec rm -rf {} + 2>/dev/null || true
+
+        # Ensure storage directories exist with proper structure
+        mkdir -p ../deployment/storage/framework/cache/data
+        mkdir -p ../deployment/storage/framework/sessions
+        mkdir -p ../deployment/storage/framework/views
+        mkdir -p ../deployment/storage/framework/testing
+        mkdir -p ../deployment/storage/logs
+        mkdir -p ../deployment/storage/app/public
+        mkdir -p ../deployment/bootstrap/cache
+
+        # Create .gitkeep files to preserve directory structure
+        touch ../deployment/storage/framework/cache/.gitignore
+        touch ../deployment/storage/framework/sessions/.gitignore
+        touch ../deployment/storage/framework/views/.gitignore
+        touch ../deployment/storage/framework/testing/.gitignore
+        touch ../deployment/storage/logs/.gitignore
+        touch ../deployment/storage/app/.gitignore
+        touch ../deployment/bootstrap/cache/.gitignore
+
+    - name: Create deployment archive
+      run: |
+        cd ../deployment
+        tar -czf ../deployment.tar.gz .
+        mv ../deployment.tar.gz $GITHUB_WORKSPACE/deployment.tar.gz
+
+    - name: Copy files to server
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT || 22 }}
+        source: "deployment.tar.gz"
+        target: "/tmp/"
+
+    - name: Deploy application
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        port: ${{ secrets.PORT || 22 }}
+        script: |
+          # Create backup
+          if [ -d "/var/www/code/palm-code" ]; then
+            sudo cp -r /var/www/code/palm-code /var/www/code/palm-code-backup-$(date +%Y%m%d-%H%M%S)
+          fi
+
+          # Extract new deployment
+          cd /var/www/code
+          sudo rm -rf palm-code-new
+          sudo mkdir -p palm-code-new
+          sudo tar -xzf /tmp/deployment.tar.gz -C palm-code-new
+
+          # Copy .env file if exists
+          if [ -f "/var/www/code/palm-code/.env" ]; then
+            sudo cp /var/www/code/palm-code/.env /var/www/code/palm-code-new/.env
+          fi
+
+          # Ensure all storage directories exist with proper permissions
+          sudo mkdir -p /var/www/code/palm-code-new/storage/framework/cache/data
+          sudo mkdir -p /var/www/code/palm-code-new/storage/framework/sessions
+          sudo mkdir -p /var/www/code/palm-code-new/storage/framework/views
+          sudo mkdir -p /var/www/code/palm-code-new/storage/framework/testing
+          sudo mkdir -p /var/www/code/palm-code-new/storage/logs
+          sudo mkdir -p /var/www/code/palm-code-new/storage/app/public
+          sudo mkdir -p /var/www/code/palm-code-new/bootstrap/cache
+
+          # Set proper permissions
+          sudo chown -R www-data:www-data /var/www/code/palm-code-new
+          sudo chmod -R 755 /var/www/code/palm-code-new
+          sudo chmod -R 775 /var/www/code/palm-code-new/storage
+          sudo chmod -R 775 /var/www/code/palm-code-new/bootstrap/cache
+
+          # ATOMIC SWITCH - Move this BEFORE Laravel commands
+          sudo mv /var/www/code/palm-code /var/www/code/palm-code-old 2>/dev/null || true
+          sudo mv /var/www/code/palm-code-new /var/www/code/palm-code
+
+          # Now run Laravel commands on the active directory
+          cd /var/www/code/palm-code
+
+          # Generate application key if needed
+          if ! grep -q "APP_KEY=base64:" .env; then
+            sudo -u www-data php artisan key:generate
+          fi
+
+          # Run migrations
+          sudo -u www-data php artisan migrate --force
+
+          # Clear and cache config
+          sudo -u www-data php artisan config:clear
+          sudo -u www-data php artisan config:cache
+          sudo -u www-data php artisan route:cache
+          sudo -u www-data php artisan view:cache
+
+          # Clear application cache
+          sudo -u www-data php artisan cache:clear
+
+          # Storage link & optimize
+          sudo -u www-data php artisan storage:unlink 2>/dev/null || true
+          sudo -u www-data php artisan storage:link
+          sudo -u www-data php artisan optimize
+
+          # Clean up old version
+          sudo rm -rf /var/www/code/palm-code-old
+
+          # Restart web server
+          sudo systemctl reload nginx
+
+          # Clean up
+          rm /tmp/deployment.tar.gz
+
+          echo "Deployment completed successfully!"
