@@ -23,6 +23,13 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  *     url="/api/v1",
  *     description="API Version 1"
  * )
+ * @OA\SecurityScheme(
+ *     securityScheme="sanctum",
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     description="Laravel Sanctum token authentication"
+ * )
  *
  * @OA\Schema(
  *     schema="Post",
@@ -119,48 +126,54 @@ class PostController extends Controller
 {
     /**
      * @OA\Get(
- *     path="/posts",
- *     summary="Get all published posts",
- *     description="Retrieve a paginated list of all published posts with their categories",
- *     operationId="getPosts",
- *     tags={"Posts"},
- *     @OA\Parameter(
- *         name="per_page",
- *         in="query",
- *         description="Number of posts per page (max 100)",
- *         required=false,
- *         @OA\Schema(type="integer", minimum=1, maximum=100, default=15)
- *     ),
- *     @OA\Parameter(
- *         name="page",
- *         in="query",
- *         description="Page number",
- *         required=false,
- *         @OA\Schema(type="integer", minimum=1, default=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Successful operation",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(
- *                 property="data",
- *                 type="array",
- *                 @OA\Items(ref="#/components/schemas/Post")
- *             ),
- *             @OA\Property(
- *                 property="meta",
- *                 ref="#/components/schemas/PaginationMeta"
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Server error",
- *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
- *     )
- * )
- */
+     *     path="/posts",
+     *     summary="Get all published posts",
+     *     description="Retrieve a paginated list of all published posts with their categories",
+     *     operationId="getPosts",
+     *     tags={"Posts"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of posts per page (max 100)",
+     *         required=false,
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, default=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", minimum=1, default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Post")
+     *             ),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 ref="#/components/schemas/PaginationMeta"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function index(Request $request): JsonResponse
     {
         try {
@@ -192,41 +205,47 @@ class PostController extends Controller
     }
     /**
      * @OA\Get(
- *     path="/posts/{post}",
- *     summary="Get a specific post",
- *     description="Retrieve a specific published post by ID with its categories",
- *     operationId="getPost",
- *     tags={"Posts"},
- *     @OA\Parameter(
- *         name="post",
- *         in="path",
- *         description="Post ID",
- *         required=true,
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Successful operation",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(
- *                 property="data",
- *                 ref="#/components/schemas/Post"
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Post not found",
- *         @OA\JsonContent(ref="#/components/schemas/NotFoundResponse")
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Server error",
- *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
- *     )
- * )
- */
+     *     path="/posts/{post}",
+     *     summary="Get a specific post",
+     *     description="Retrieve a specific published post by ID with its categories",
+     *     operationId="getPost",
+     *     tags={"Posts"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Parameter(
+     *         name="post",
+     *         in="path",
+     *         description="Post ID",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Post"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Post not found",
+     *         @OA\JsonContent(ref="#/components/schemas/NotFoundResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function show(string $id): JsonResponse
     {
         try {
@@ -254,61 +273,61 @@ class PostController extends Controller
 
     /**
      * @OA\Get(
- *     path="/posts/search",
- *     summary="Search posts",
- *     description="Search for published posts by title, content, or excerpt",
- *     operationId="searchPosts",
- *     tags={"Posts"},
- *     @OA\Parameter(
- *         name="q",
- *         in="query",
- *         description="Search query",
- *         required=true,
- *         @OA\Schema(type="string", minLength=1)
- *     ),
- *     @OA\Parameter(
- *         name="per_page",
- *         in="query",
- *         description="Number of posts per page (max 100)",
- *         required=false,
- *         @OA\Schema(type="integer", minimum=1, maximum=100, default=15)
- *     ),
- *     @OA\Parameter(
- *         name="page",
- *         in="query",
- *         description="Page number",
- *         required=false,
- *         @OA\Schema(type="integer", minimum=1, default=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Successful operation",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(
- *                 property="data",
- *                 type="array",
- *                 @OA\Items(ref="#/components/schemas/Post")
- *             ),
- *             @OA\Property(property="search_term", type="string"),
- *             @OA\Property(
- *                 property="meta",
- *                 ref="#/components/schemas/PaginationMeta"
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=400,
- *         description="Bad request - search term required",
- *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Server error",
- *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
- *     )
- * )
- */
+     *     path="/posts/search",
+     *     summary="Search posts",
+     *     description="Search for published posts by title, content, or excerpt",
+     *     operationId="searchPosts",
+     *     tags={"Posts"},
+     *     @OA\Parameter(
+     *         name="q",
+     *         in="query",
+     *         description="Search query",
+     *         required=true,
+     *         @OA\Schema(type="string", minLength=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of posts per page (max 100)",
+     *         required=false,
+     *         @OA\Schema(type="integer", minimum=1, maximum=100, default=15)
+     *     ),
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Page number",
+     *         required=false,
+     *         @OA\Schema(type="integer", minimum=1, default=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Post")
+     *             ),
+     *             @OA\Property(property="search_term", type="string"),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 ref="#/components/schemas/PaginationMeta"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request - search term required",
+     *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function search(Request $request): JsonResponse
     {
         try {
@@ -353,40 +372,40 @@ class PostController extends Controller
 
     /**
      * @OA\Get(
- *     path="/sitemap",
- *     summary="Get sitemap data",
- *     description="Retrieve sitemap data for all published posts and pages",
- *     operationId="getSitemap",
- *     tags={"Utility"},
- *     @OA\Response(
- *         response=200,
- *         description="Successful operation",
- *         @OA\JsonContent(
- *             @OA\Property(property="success", type="boolean", example=true),
- *             @OA\Property(
- *                 property="data",
- *                 type="object",
- *                 @OA\Property(
- *                     property="posts",
- *                     type="array",
- *                     @OA\Items(ref="#/components/schemas/SitemapItem")
- *                 ),
- *                 @OA\Property(
- *                     property="pages",
- *                     type="array",
- *                     @OA\Items(ref="#/components/schemas/SitemapItem")
- *                 )
- *             ),
- *             @OA\Property(property="generated_at", type="string", format="date-time")
- *         )
- *     ),
- *     @OA\Response(
- *         response=500,
- *         description="Server error",
- *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
- *     )
- * )
- */
+     *     path="/sitemap",
+     *     summary="Get sitemap data",
+     *     description="Retrieve sitemap data for all published posts and pages",
+     *     operationId="getSitemap",
+     *     tags={"Utility"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="success", type="boolean", example=true),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="posts",
+     *                     type="array",
+     *                     @OA\Items(ref="#/components/schemas/SitemapItem")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="pages",
+     *                     type="array",
+     *                     @OA\Items(ref="#/components/schemas/SitemapItem")
+     *                 )
+     *             ),
+     *             @OA\Property(property="generated_at", type="string", format="date-time")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Server error",
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+     *     )
+     * )
+     */
     public function sitemap(): JsonResponse
     {
         try {

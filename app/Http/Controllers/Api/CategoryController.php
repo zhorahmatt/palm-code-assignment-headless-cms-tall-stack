@@ -88,7 +88,6 @@ class CategoryController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        // ... existing code ...
         try {
             $query = Category::withCount(['posts' => function ($query) {
                 $query->where('status', 'published');
