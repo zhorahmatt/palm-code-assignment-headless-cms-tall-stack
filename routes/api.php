@@ -10,40 +10,43 @@ use App\Http\Controllers\Api\CategoryController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-| Why we structure it this way:
-| - RESTful design: Standard HTTP methods (GET, POST, PUT, DELETE)
-| - Resource controllers: Laravel's built-in REST conventions
-| - Versioning: v1 prefix for future API evolution
-| - Public access: No authentication required for reading content
 */
 
-// API Version 1 - Grouped routes for better organization
-Route::prefix('v1')->group(function () {
+// API Version 1 - Public read-only endpoints
+Route::prefix('v1')->name('api.v1.')->group(function () {
 
-    // Posts API - Full CRUD for headless CMS consumption
-    Route::apiResource('posts', PostController::class)->only([
-        'index',    // GET /api/v1/posts - List all published posts
-        'show'      // GET /api/v1/posts/{id} - Get single post
-    ]);
+    // Apply rate limiting and CORS
+    Route::middleware(['throttle:api'])->group(function () {
 
-    // Pages API - Read-only for public consumption
-    Route::apiResource('pages', PageController::class)->only([
-        'index',    // GET /api/v1/pages - List all published pages
-        'show'      // GET /api/v1/pages/{id} - Get single page
-    ]);
+        // Posts endpoints
+        Route::prefix('posts')->name('posts.')->group(function () {
+            Route::get('/', [PostController::class, 'index'])->name('index');
+            Route::get('/search', [PostController::class, 'search'])->name('search');
+            Route::get('/recent', [PostController::class, 'recent'])->name('recent');
+            Route::get('/{post}', [PostController::class, 'show'])->name('show');
+        });
 
-    // Categories API - Read-only for public consumption
-    Route::apiResource('categories', CategoryController::class)->only([
-        'index',    // GET /api/v1/categories - List all categories
-        'show'      // GET /api/v1/categories/{id} - Get single category with posts
-    ]);
+        // Pages endpoints
+        Route::prefix('pages')->name('pages.')->group(function () {
+            Route::get('/', [PageController::class, 'index'])->name('index');
+            Route::get('/{page}', [PageController::class, 'show'])->name('show');
+        });
 
-    // Additional endpoints for better API usability
-    Route::get('posts/category/{category}', [PostController::class, 'byCategory']); // GET /api/v1/posts/category/{category}
-    Route::get('posts/search', [PostController::class, 'search']); // GET /api/v1/posts/search
+        // Categories endpoints
+        Route::prefix('categories')->name('categories.')->group(function () {
+            Route::get('/', [CategoryController::class, 'index'])->name('index');
+            Route::get('/{category}', [CategoryController::class, 'show'])->name('show');
+            Route::get('/{category}/posts', [CategoryController::class, 'posts'])->name('posts');
+        });
+
+        // Additional utility endpoints
+        Route::get('/sitemap', [PostController::class, 'sitemap'])->name('sitemap');
+        Route::get('/health', function () {
+            return response()->json([
+                'status' => 'healthy',
+                'timestamp' => now()->toISOString(),
+                'version' => '1.0.0'
+            ]);
+        })->name('health');
+    });
 });

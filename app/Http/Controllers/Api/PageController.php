@@ -17,28 +17,52 @@ class PageController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $query = Page::where('status', 'published')
-                ->orderBy('title');
+            // Validate query parameters
+            $validated = $request->validate([
+                'per_page' => 'integer|min:1|max:100',
+                'page' => 'integer|min:1',
+                'sort' => 'in:title,created_at,updated_at',
+                'order' => 'in:asc,desc',
+            ]);
 
-            // Optional pagination
-            $perPage = $request->get('per_page', 15);
+            $query = Page::where('status', 'published')
+                ->orderBy($validated['sort'] ?? 'title', $validated['order'] ?? 'asc');
+
+            $perPage = $validated['per_page'] ?? 15;
             $pages = $query->paginate($perPage);
 
             return response()->json([
-                'success' => true,
                 'data' => $pages->items(),
                 'meta' => [
                     'current_page' => $pages->currentPage(),
                     'last_page' => $pages->lastPage(),
                     'per_page' => $pages->perPage(),
                     'total' => $pages->total(),
+                    'from' => $pages->firstItem(),
+                    'to' => $pages->lastItem(),
+                ],
+                'links' => [
+                    'first' => $pages->url(1),
+                    'last' => $pages->url($pages->lastPage()),
+                    'prev' => $pages->previousPageUrl(),
+                    'next' => $pages->nextPageUrl(),
                 ]
+            ], 200, [
+                'Content-Type' => 'application/json',
+                'X-Total-Count' => $pages->total(),
+                'Cache-Control' => 'public, max-age=600', // 10 minutes cache
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'error' => 'Validation failed',
+                'message' => 'Invalid query parameters',
+                'details' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
+                'error' => 'Internal server error',
                 'message' => 'Failed to retrieve pages',
-                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+                'details' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
     }
@@ -51,13 +75,19 @@ class PageController extends Controller
     {
         try {
             $page = Page::where('status', 'published')
-                ->where('id', $id)
-                ->orWhere('slug', $id)
+                ->where(function ($query) use ($id) {
+                    $query->where('id', $id)
+                          ->orWhere('slug', $id);
+                })
                 ->firstOrFail();
 
             return response()->json([
                 'success' => true,
                 'data' => $page
+            ], 200, [
+                'Content-Type' => 'application/json',
+                'Cache-Control' => 'public, max-age=1800', // 30 minutes cache
+                'ETag' => md5($page->updated_at)
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -72,7 +102,4 @@ class PageController extends Controller
             ], 500);
         }
     }
-
-    // Note: store, update, destroy methods are not implemented
-    // as this is a read-only API for headless CMS consumption
 }
