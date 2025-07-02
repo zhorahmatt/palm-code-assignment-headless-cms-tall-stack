@@ -22,7 +22,6 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
         Route::prefix('posts')->name('posts.')->group(function () {
             Route::get('/', [PostController::class, 'index'])->name('index');
             Route::get('/search', [PostController::class, 'search'])->name('search');
-            Route::get('/recent', [PostController::class, 'recent'])->name('recent');
             Route::get('/{post}', [PostController::class, 'show'])->name('show');
         });
 
