@@ -12,7 +12,7 @@
                     {{-- Why we use a grid layout: Responsive design that works on all devices --}}
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         {{-- Posts Statistics Card --}}
-                        <div class="bg-gray-50 rounded-lg shadow p-6">
+                        <a href="{{ route('posts.index') }}" class="bg-gray-50 rounded-lg shadow p-6 hover:bg-gray-100 transition-colors duration-200 block">
                             <div class="flex items-center">
                                 <div class="p-2 bg-blue-100 rounded-lg">
                                     <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -25,10 +25,10 @@
                                     <p class="text-sm text-gray-500">{{ $publishedPostsCount }} published, {{ $draftPostsCount }} drafts</p>
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {{-- Pages Statistics Card --}}
-                        <div class="bg-gray-50 rounded-lg shadow p-6">
+                        <a href="{{ route('pages.index') }}" class="bg-gray-50 rounded-lg shadow p-6 hover:bg-gray-100 transition-colors duration-200 block">
                             <div class="flex items-center">
                                 <div class="p-2 bg-green-100 rounded-lg">
                                     <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -40,10 +40,10 @@
                                     <p class="text-2xl font-bold text-green-600">{{ $pagesCount }}</p>
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {{-- Categories Statistics Card --}}
-                        <div class="bg-gray-50 rounded-lg shadow p-6">
+                        <a href="{{ route('categories.index') }}" class="bg-gray-50 rounded-lg shadow p-6 hover:bg-gray-100 transition-colors duration-200 block">
                             <div class="flex items-center">
                                 <div class="p-2 bg-purple-100 rounded-lg">
                                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,7 +55,7 @@
                                     <p class="text-2xl font-bold text-purple-600">{{ $categoriesCount }}</p>
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {{-- Quick Actions Card --}}
                         <div class="bg-gray-50 rounded-lg shadow p-6">

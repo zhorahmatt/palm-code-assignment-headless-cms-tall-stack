@@ -13,7 +13,8 @@ class Category extends Model
 
     protected $fillable = [
         'name',
-        'slug'
+        'slug',
+        'description'
     ];
 
     public function getSlugOptions(): SlugOptions
