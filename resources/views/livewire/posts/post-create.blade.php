@@ -68,16 +68,15 @@
                                     <label for="content" class="block text-sm font-medium text-gray-700 mb-2">
                                         Content *
                                     </label>
-                                    <textarea id="content"
-                                              wire:model="content"
-                                              rows="15"
-                                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror"
-                                              placeholder="Write your post content here..."></textarea>
+                                    <div wire:ignore>
+                                        <textarea id="content"
+                                                  wire:model="content"
+                                                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 @error('content') border-red-500 @enderror"></textarea>
+                                    </div>
                                     @error('content')
                                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
                                 </div>
-
                                 <!-- SEO Section -->
                                 <div class="border-t pt-6">
                                     <h3 class="text-lg font-medium text-gray-900 mb-4">SEO Settings</h3>
@@ -170,18 +169,17 @@
 
                                     <div class="mb-4">
                                         <input type="file"
-                                               wire:model="featured_image"
+                                               wire:model="image"
                                                accept="image/*"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        @error('featured_image')
+                                        @error('image')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
-
                                     <!-- Image Preview -->
-                                    @if ($featured_image)
+                                    @if ($image)
                                         <div class="mt-4">
-                                            <img src="{{ $featured_image->temporaryUrl() }}"
+                                            <img src="{{ $image->temporaryUrl() }}"
                                                  alt="Preview"
                                                  class="w-full h-32 object-cover rounded-lg">
                                         </div>
@@ -239,3 +237,30 @@
         </div>
     @endif
 </div>
+
+<!-- Add this in the head section or before closing body -->
+<script src="https://cdn.tiny.cloud/1/bgka8hwatxby8ooalrs2kw4mlz6jmb760o7m7a1zc1s76xqt/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+<!-- Or use local installation -->
+<script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        tinymce.init({
+            selector: '#content',
+            height: 400,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+            setup: function (editor) {
+                editor.on('change', function () {
+                    @this.set('content', editor.getContent());
+                });
+            }
+        });
+    });
+</script>

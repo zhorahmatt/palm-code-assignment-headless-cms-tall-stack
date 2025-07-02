@@ -7,6 +7,7 @@ use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Str;
+use App\Services\ContentSanitizer;
 
 class PostEdit extends Component
 {
@@ -18,7 +19,7 @@ class PostEdit extends Component
     public $excerpt;
     public $content;
     public $status;
-    public $featured_image;
+    public $image; // Changed from featured_image
     public $existing_image;
     public $meta_title;
     public $meta_description;
@@ -31,7 +32,7 @@ class PostEdit extends Component
         'excerpt' => 'nullable|string|max:500',
         'content' => 'required|string',
         'status' => 'required|in:draft,published',
-        'featured_image' => 'nullable|image|max:2048',
+        'image' => 'nullable|image|max:2048', // Changed from featured_image
         'meta_title' => 'nullable|string|max:255',
         'meta_description' => 'nullable|string|max:255',
         'published_at' => 'nullable|date',
@@ -46,7 +47,7 @@ class PostEdit extends Component
         $this->excerpt = $post->excerpt;
         $this->content = $post->content;
         $this->status = $post->status;
-        $this->existing_image = $post->featured_image;
+        $this->existing_image = $post->image; // Changed from featured_image
         $this->meta_title = $post->meta_title;
         $this->meta_description = $post->meta_description;
         $this->published_at = $post->published_at?->format('Y-m-d\TH:i');
@@ -66,7 +67,7 @@ class PostEdit extends Component
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'status' => 'required|in:draft,published',
-            'featured_image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:2048', // Changed from featured_image
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:255',
             'published_at' => 'nullable|date',
@@ -78,18 +79,20 @@ class PostEdit extends Component
     {
         $this->validate();
 
+        $sanitizer = new ContentSanitizer(); // Added content sanitization
+
         $imagePath = $this->existing_image;
-        if ($this->featured_image) {
-            $imagePath = $this->featured_image->store('posts', 'public');
+        if ($this->image) { // Changed from featured_image
+            $imagePath = $this->image->store('posts', 'public');
         }
 
         $this->post->update([
             'title' => $this->title,
             'slug' => $this->slug,
             'excerpt' => $this->excerpt,
-            'content' => $this->content,
+            'content' => $sanitizer->sanitize($this->content), // Added sanitization
             'status' => $this->status,
-            'featured_image' => $imagePath,
+            'image' => $imagePath, // Changed from featured_image
             'meta_title' => $this->meta_title,
             'meta_description' => $this->meta_description,
             'published_at' => $this->status === 'published' ? ($this->published_at ?: now()) : null,
@@ -101,12 +104,54 @@ class PostEdit extends Component
         return redirect()->route('posts.index');
     }
 
+    public function saveDraft()
+    {
+        $this->validate();
+
+        $sanitizer = new ContentSanitizer(); // Added content sanitization
+
+        $imagePath = $this->existing_image;
+        if ($this->image) { // Changed from featured_image
+            $imagePath = $this->image->store('posts', 'public');
+        }
+
+        $this->post->update([
+            'title' => $this->title,
+            'slug' => $this->slug,
+            'excerpt' => $this->excerpt,
+            'content' => $sanitizer->sanitize($this->content), // Added sanitization
+            'status' => 'draft',
+            'image' => $imagePath, // Changed from featured_image
+            'meta_title' => $this->meta_title,
+            'meta_description' => $this->meta_description,
+            'published_at' => null,
+        ]);
+
+        $this->post->categories()->sync($this->selectedCategories);
+
+        session()->flash('message', 'Post saved as draft successfully.');
+        return redirect()->route('posts.index');
+    }
+
+    public function deletePost()
+    {
+        $this->post->delete();
+
+        session()->flash('message', 'Post deleted successfully.');
+        return redirect()->route('posts.index');
+    }
+
     public function render()
     {
         $categories = Category::orderBy('name')->get();
-        
+
         return view('livewire.posts.post-edit', [
             'categories' => $categories,
         ]);
+    }
+
+    public function removeCurrentImage()
+    {
+        $this->existing_image = null;
     }
 }

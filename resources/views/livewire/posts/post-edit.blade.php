@@ -14,18 +14,18 @@
                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                                 Back to Posts
                             </a>
-                            @if($post->status === 'published')
+                            {{-- @if($post->status === 'published')
                                 <a href="{{ url('/api/v1/posts/' . $post->slug) }}"
                                    target="_blank"
                                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
                                     View Live
                                 </a>
-                            @endif
+                            @endif --}}
                         </div>
                     </div>
 
                     <!-- Form -->
-                    <form wire:submit="update">
+                    <form wire:submit="save">
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <!-- Main Content -->
                             <div class="lg:col-span-2 space-y-6">
@@ -189,7 +189,7 @@
                                     <h3 class="text-lg font-medium text-gray-900 mb-4">Featured Image</h3>
 
                                     <!-- Current Image -->
-                                    @if($post->image && !$featured_image)
+                                    @if($post->image && !$image)
                                         <div class="mb-4">
                                             <img src="{{ Storage::url($post->image) }}"
                                                  alt="Current featured image"
@@ -204,19 +204,19 @@
 
                                     <div class="mb-4">
                                         <input type="file"
-                                               wire:model="featured_image"
+                                               wire:model="image"
                                                accept="image/*"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                        @error('featured_image')
+                                        @error('image')
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
 
                                     <!-- New Image Preview -->
-                                    @if ($featured_image)
+                                    @if ($image)
                                         <div class="mt-4">
                                             <p class="text-sm text-gray-600 mb-2">New image preview:</p>
-                                            <img src="{{ $featured_image->temporaryUrl() }}"
+                                            <img src="{{ $image->temporaryUrl() }}"
                                                  alt="Preview"
                                                  class="w-full h-32 object-cover rounded-lg">
                                         </div>
@@ -300,3 +300,30 @@
         </div>
     @endif
 </div>
+
+<!-- Add this in the head section or before closing body -->
+<script src="https://cdn.tiny.cloud/1/bgka8hwatxby8ooalrs2kw4mlz6jmb760o7m7a1zc1s76xqt/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+
+<!-- Or use local installation -->
+<script src="{{ asset('js/tinymce/tinymce.min.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        tinymce.init({
+            selector: '#content',
+            height: 400,
+            menubar: false,
+            plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'help', 'wordcount'
+            ],
+            toolbar: 'undo redo | blocks | bold italic forecolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | help',
+            setup: function (editor) {
+                editor.on('change', function () {
+                    @this.set('content', editor.getContent());
+                });
+            }
+        });
+    });
+</script>

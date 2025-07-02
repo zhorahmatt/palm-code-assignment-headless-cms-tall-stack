@@ -14,13 +14,13 @@ class PostIndex extends Component
 
     #[Url]
     public $search = '';
-    
+
     #[Url]
     public $status = '';
-    
+
     #[Url]
     public $category = '';
-    
+
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
@@ -55,21 +55,45 @@ class PostIndex extends Component
         $this->sortField = $field;
     }
 
-    public function delete($postId)
+    public function deletePost($postId)
     {
-        $post = Post::findOrFail($postId);
-        $post->delete();
-        
-        session()->flash('message', 'Post deleted successfully.');
+        try {
+            $post = Post::findOrFail($postId);
+            $post->delete();
+
+            session()->flash('message', 'Post deleted successfully.');
+
+            // Refresh the component to update the list
+            $this->dispatch('$refresh');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to delete post. Please try again.');
+        }
     }
 
     public function toggleStatus($postId)
     {
-        $post = Post::findOrFail($postId);
-        $post->status = $post->status === 'published' ? 'draft' : 'published';
-        $post->save();
-        
-        session()->flash('message', 'Post status updated successfully.');
+        try {
+            $post = Post::findOrFail($postId);
+            $oldStatus = $post->status;
+            $post->status = $post->status === 'published' ? 'draft' : 'published';
+
+            // Set published_at when publishing
+            if ($post->status === 'published' && !$post->published_at) {
+                $post->published_at = now();
+            }
+
+            $post->save();
+
+            // Create more descriptive flash message
+            $action = $post->status === 'published' ? 'published' : 'unpublished';
+            session()->flash('message', "Post '{$post->title}' has been {$action} successfully.");
+
+            // Add a small delay to ensure UI updates are visible
+            $this->dispatch('post-status-updated', ['postId' => $postId, 'newStatus' => $post->status]);
+
+        } catch (\Exception $e) {
+            session()->flash('error', 'Failed to update post status. Please try again.');
+        }
     }
 
     public function render()
