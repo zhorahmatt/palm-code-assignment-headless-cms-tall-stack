@@ -18,7 +18,7 @@
             <div class="text-center">
                 <!-- Logo/Title -->
                 <div class="mb-12">
-                    <h1 class="text-6xl font-bold text-white mb-4">CMS Portal</h1>
+                    <h1 class="text-6xl font-bold text-white mb-4">Palm CMS Portal</h1>
                     <p class="text-xl text-gray-300">Welcome to your content management system</p>
                 </div>
 
@@ -26,19 +26,19 @@
                 @if (Route::has('login'))
                     <div class="space-y-6">
                         @auth
-                            <a href="{{ url('/dashboard') }}" 
+                            <a href="{{ url('/admin/dashboard') }}"
                                class="inline-block w-80 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-xl font-semibold rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                                 Go to Dashboard
                             </a>
                         @else
                             <div class="space-y-4">
-                                <a href="{{ route('login') }}" 
+                                <a href="{{ route('login') }}"
                                    class="block w-80 mx-auto px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-xl font-semibold rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                                     Login
                                 </a>
-                                
+
                                 @if (Route::has('register'))
-                                    <a href="{{ route('register') }}" 
+                                    <a href="{{ route('register') }}"
                                        class="block w-80 mx-auto px-8 py-4 bg-gray-600 hover:bg-gray-700 text-white text-xl font-semibold rounded-lg shadow-lg transition duration-300 transform hover:scale-105">
                                         Register
                                     </a>

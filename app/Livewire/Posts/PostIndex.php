@@ -7,6 +7,7 @@ use App\Models\Category;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
+use Illuminate\Support\Facades\Auth;
 
 class PostIndex extends Component
 {
@@ -57,6 +58,12 @@ class PostIndex extends Component
 
     public function deletePost($postId)
     {
+        // Check permission before allowing delete
+        if (!Auth::user()->hasPermission('posts.delete') && !Auth::user()->isSuperAdmin()) {
+            session()->flash('error', 'You do not have permission to delete posts.');
+            return;
+        }
+
         try {
             $post = Post::findOrFail($postId);
             $post->delete();
@@ -72,6 +79,12 @@ class PostIndex extends Component
 
     public function toggleStatus($postId)
     {
+        // Check permission before allowing status change
+        if (!Auth::user()->hasPermission('posts.edit') && !Auth::user()->isSuperAdmin()) {
+            session()->flash('error', 'You do not have permission to edit posts.');
+            return;
+        }
+
         try {
             $post = Post::findOrFail($postId);
             $oldStatus = $post->status;
@@ -94,6 +107,21 @@ class PostIndex extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to update post status. Please try again.');
         }
+    }
+
+    public function canCreate()
+    {
+        return Auth::user()->hasPermission('posts.create') || Auth::user()->isSuperAdmin();
+    }
+
+    public function canEdit()
+    {
+        return Auth::user()->hasPermission('posts.edit') || Auth::user()->isSuperAdmin();
+    }
+
+    public function canDelete()
+    {
+        return Auth::user()->hasPermission('posts.delete') || Auth::user()->isSuperAdmin();
     }
 
     public function render()
