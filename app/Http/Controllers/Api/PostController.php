@@ -331,14 +331,19 @@ class PostController extends Controller
     public function search(Request $request): JsonResponse
     {
         try {
-            $searchTerm = $request->get('q');
+            // Add comprehensive validation
+            $validated = $request->validate([
+                'q' => 'required|string|min:2|max:100',
+                'per_page' => 'integer|min:1|max:100',
+                'page' => 'integer|min:1',
+                'sort' => 'in:title,published_at,created_at',
+                'order' => 'in:asc,desc'
+            ]);
 
-            if (empty($searchTerm)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Search term is required'
-                ], 400);
-            }
+            $searchTerm = $validated['q'];
+            $perPage = $validated['per_page'] ?? 15;
+            $sort = $validated['sort'] ?? 'published_at';
+            $order = $validated['order'] ?? 'desc';
 
             $posts = Post::with(['categories'])
                 ->where('status', 'published')
@@ -347,8 +352,8 @@ class PostController extends Controller
                           ->orWhere('content', 'LIKE', "%{$searchTerm}%")
                           ->orWhere('excerpt', 'LIKE', "%{$searchTerm}%");
                 })
-                ->orderBy('published_at', 'desc')
-                ->paginate(15);
+                ->orderBy($sort, $order)
+                ->paginate($perPage);
 
             return response()->json([
                 'success' => true,
@@ -361,6 +366,12 @@ class PostController extends Controller
                     'total' => $posts->total(),
                 ]
             ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

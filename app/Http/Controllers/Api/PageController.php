@@ -145,14 +145,15 @@ class PageController extends Controller
                 'sort' => 'in:title,created_at,updated_at',
                 'order' => 'in:asc,desc',
             ]);
-
+    
             $query = Page::where('status', 'published')
                 ->orderBy($validated['sort'] ?? 'title', $validated['order'] ?? 'asc');
-
+    
             $perPage = $validated['per_page'] ?? 15;
             $pages = $query->paginate($perPage);
-
+    
             return response()->json([
+                'success' => true, // Add this for consistency
                 'data' => $pages->items(),
                 'meta' => [
                     'current_page' => $pages->currentPage(),
@@ -175,12 +176,14 @@ class PageController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
+                'success' => false, // Add this for consistency
                 'error' => 'Validation failed',
                 'message' => 'Invalid query parameters',
                 'details' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false, // Add this for consistency
                 'error' => 'Internal server error',
                 'message' => 'Failed to retrieve pages',
                 'details' => config('app.debug') ? $e->getMessage() : null
