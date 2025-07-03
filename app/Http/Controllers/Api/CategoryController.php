@@ -14,32 +14,30 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  *     type="object",
  *     title="Category with Posts",
  *     description="Category model with associated posts",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Technology"),
- *     @OA\Property(property="slug", type="string", example="technology"),
- *     @OA\Property(property="description", type="string", nullable=true, example="Technology related posts"),
- *     @OA\Property(property="posts_count", type="integer", example=15),
- *     @OA\Property(property="created_at", type="string", format="date-time", example="2024-01-01T10:00:00Z"),
- *     @OA\Property(property="updated_at", type="string", format="date-time", example="2024-01-01T14:00:00Z"),
- *     @OA\Property(
- *         property="posts",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Post")
- *     )
+ *     allOf={
+ *         @OA\Schema(ref="#/components/schemas/Category"),
+ *         @OA\Schema(
+ *             @OA\Property(
+ *                 property="posts",
+ *                 type="array",
+ *                 description="Associated published posts",
+ *                 @OA\Items(ref="#/components/schemas/Post")
+ *             )
+ *         )
+ *     }
  * )
  *
  * @OA\Schema(
  *     schema="CategoryWithPostsCount",
  *     type="object",
  *     title="Category with Posts Count",
- *     description="Category model with posts count",
- *     @OA\Property(property="id", type="integer", example=1),
- *     @OA\Property(property="name", type="string", example="Technology"),
- *     @OA\Property(property="slug", type="string", example="technology"),
- *     @OA\Property(property="description", type="string", nullable=true, example="Technology related posts"),
- *     @OA\Property(property="posts_count", type="integer", example=15),
- *     @OA\Property(property="created_at", type="string", format="date-time", example="2024-01-01T10:00:00Z"),
- *     @OA\Property(property="updated_at", type="string", format="date-time", example="2024-01-01T14:00:00Z")
+ *     description="Category model with posts count only",
+ *     allOf={
+ *         @OA\Schema(ref="#/components/schemas/Category"),
+ *         @OA\Schema(
+ *             @OA\Property(property="posts_count", type="integer", description="Number of published posts", example=15)
+ *         )
+ *     }
  * )
  */
 class CategoryController extends Controller
@@ -48,41 +46,48 @@ class CategoryController extends Controller
      * @OA\Get(
      *     path="/categories",
      *     summary="Get all categories",
-     *     description="Retrieve a list of all categories with published posts count and optionally include recent posts",
+     *     description="Retrieve a list of all categories with published posts count and optionally include recent posts. Categories are ordered alphabetically by name.",
      *     operationId="getCategories",
      *     tags={"Categories"},
      *     @OA\Parameter(
      *         name="include_posts",
      *         in="query",
-     *         description="Include recent posts for each category (limit 5)",
+     *         description="Include recent posts for each category (limit 5 most recent)",
      *         required=false,
-     *         @OA\Schema(type="string", enum={"true", "false"}, default="false")
+     *         @OA\Schema(type="string", enum={"true", "false"}, default="false"),
+     *         example="true"
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Successful operation",
+     *         description="Categories retrieved successfully",
      *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=true),
-     *             @OA\Property(
-     *                 property="data",
-     *                 type="array",
-     *                 @OA\Items(
-     *                     oneOf={
-     *                         @OA\Schema(ref="#/components/schemas/CategoryWithPostsCount"),
-     *                         @OA\Schema(ref="#/components/schemas/CategoryWithPosts")
-     *                     }
+     *             allOf={
+     *                 @OA\Schema(ref="#/components/schemas/SuccessResponse"),
+     *                 @OA\Schema(
+     *                     @OA\Property(
+     *                         property="data",
+     *                         type="array",
+     *                         description="Array of category objects",
+     *                         @OA\Items(
+     *                             oneOf={
+     *                                 @OA\Schema(ref="#/components/schemas/CategoryWithPostsCount"),
+     *                                 @OA\Schema(ref="#/components/schemas/CategoryWithPosts")
+     *                             }
+     *                         )
+     *                     )
      *                 )
-     *             )
+     *             }
+     *         ),
+     *         @OA\Header(
+     *             header="Cache-Control",
+     *             description="Cache control header",
+     *             @OA\Schema(type="string", example="public, max-age=600")
      *         )
      *     ),
      *     @OA\Response(
      *         response=500,
      *         description="Server error",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="success", type="boolean", example=false),
-     *             @OA\Property(property="message", type="string", example="Failed to retrieve categories"),
-     *             @OA\Property(property="error", type="string", example="Internal server error")
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
      *     )
      * )
      */

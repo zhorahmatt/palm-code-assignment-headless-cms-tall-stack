@@ -5,6 +5,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Illuminate\Auth\AuthenticationException;
 
@@ -20,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
             // 'permission' => \App\Http\Middleware\CheckPermission::class,
             'resource.permission' => \App\Http\Middleware\ResourcePermissionMiddleware::class,
         ]);
+
+        // Configure rate limiters
+        $middleware->throttleApi();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Handle 404 errors for API routes
@@ -30,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 404);
             }
         });
-        
+
         // Handle authentication errors for API routes
         $exceptions->render(function (AuthenticationException $e, Request $request) {
             if ($request->expectsJson() || $request->is('api/*')) {
@@ -42,4 +47,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 401);
             }
         });
-    })->create();
+    })
+    ->booting(function () {
+        // Configure rate limiters
+        RateLimiter::for('api', function (Request $request) {
+            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+    })
+    ->create();
