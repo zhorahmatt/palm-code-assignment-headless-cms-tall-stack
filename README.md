@@ -5,35 +5,34 @@
 </p>
 
 <p align="center">
-    <strong>A modern headless CMS built with the TALL Stack (Tailwind CSS, Alpine.js, Laravel, Livewire)</strong>
+    <strong>A headless CMS built with the TALL Stack (Tailwind CSS, Alpine.js, Laravel, Livewire)</strong>
 </p>
 
 ## 🚀 Features
 
 - **Content Management**: Create, edit, and manage posts, pages, and categories
-- **Role-Based Access Control (RBAC)**: Comprehensive permission system with roles and permissions
 - **User Management**: Admin panel for managing users, roles, and permissions
-- **Responsive Design**: Modern, mobile-first UI built with Tailwind CSS
+- **Authentication**: Secure login system with email verification
 - **Real-time Updates**: Interactive components powered by Livewire
 - **RESTful API**: Headless architecture with API endpoints for content consumption
-- **Authentication**: Secure login system with email verification
 - **Content Sanitization**: Built-in content security and sanitization
+- **Responsive Design**: Modern, mobile-first UI built with Tailwind CSS
+- **Role-Based Access Control (RBAC)**: Comprehensive permission system with roles and permissions
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Laravel 11
-- **Frontend**: Livewire 3, Alpine.js, Tailwind CSS
-- **Database**: MySQL/PostgreSQL/SQLite
+- **Backend**: Laravel
+- **Frontend**: Livewire, Alpine.js, Tailwind CSS
+- **Database**: MySQL
 - **Authentication**: Laravel Breeze
 - **API Documentation**: L5-Swagger (OpenAPI)
 
 ## 🌐 Live Demo
 
-**Coming Soon**: Live preview will be available at [your-domain.com]
+**Coming Soon**: Live preview will be available at [https://palm-code.thuuba.com/api/documentation]
 
 **Demo Credentials**:
 - **Super Admin**: admin@example.com / password
-- **Editor**: editor@example.com / password
 
 ## 📋 Prerequisites
 
