@@ -171,23 +171,36 @@ class CategoryController extends Controller
             ->withCount(['posts' => function ($query) {
                 $query->where('status', 'published');
             }])
-            ->where('id', $id)
-            ->orWhere('slug', $id)
+            ->where(function ($query) use ($id) {
+                $query->where('id', $id)->orWhere('slug', $id);
+            })
             ->firstOrFail();
 
             return response()->json([
                 'success' => true,
                 'data' => $category
+            ], 200, [
+                'Cache-Control' => 'public, max-age=600', // 10 minutes cache
+                'ETag' => md5($category->updated_at)
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Category not found'
+                'message' => 'Category not found',
+                'error_code' => 'CATEGORY_NOT_FOUND'
             ], 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Database error occurred',
+                'error_code' => 'DATABASE_ERROR',
+                'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
+            ], 500);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve category',
+                'error_code' => 'GENERAL_ERROR',
                 'error' => config('app.debug') ? $e->getMessage() : 'Internal server error'
             ], 500);
         }
