@@ -42,7 +42,7 @@ class CategoryEdit extends Component
         ];
     }
 
-    public function save()
+    public function update()
     {
         $this->validate();
 

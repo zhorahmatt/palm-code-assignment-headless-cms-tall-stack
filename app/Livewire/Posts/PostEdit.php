@@ -104,43 +104,6 @@ class PostEdit extends Component
         return redirect()->route('posts.index');
     }
 
-    public function saveDraft()
-    {
-        $this->validate();
-
-        $sanitizer = new ContentSanitizer(); // Added content sanitization
-
-        $imagePath = $this->existing_image;
-        if ($this->image) { // Changed from featured_image
-            $imagePath = $this->image->store('posts', 'public');
-        }
-
-        $this->post->update([
-            'title' => $this->title,
-            'slug' => $this->slug,
-            'excerpt' => $this->excerpt,
-            'content' => $sanitizer->sanitize($this->content), // Added sanitization
-            'status' => 'draft',
-            'image' => $imagePath, // Changed from featured_image
-            'meta_title' => $this->meta_title,
-            'meta_description' => $this->meta_description,
-            'published_at' => null,
-        ]);
-
-        $this->post->categories()->sync($this->selectedCategories);
-
-        session()->flash('message', 'Post saved as draft successfully.');
-        return redirect()->route('posts.index');
-    }
-
-    public function deletePost()
-    {
-        $this->post->delete();
-
-        session()->flash('message', 'Post deleted successfully.');
-        return redirect()->route('posts.index');
-    }
-
     public function render()
     {
         $categories = Category::orderBy('name')->get();

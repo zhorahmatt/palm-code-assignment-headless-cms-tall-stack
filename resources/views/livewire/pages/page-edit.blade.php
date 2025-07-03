@@ -96,20 +96,7 @@
                                             <span wire:loading>Updating...</span>
                                         </button>
 
-                                        <button type="button"
-                                                wire:click="saveDraft"
-                                                class="w-full bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                            <span wire:loading.remove wire:target="saveDraft">Save as Draft</span>
-                                            <span wire:loading wire:target="saveDraft">Saving...</span>
-                                        </button>
 
-                                        <button type="button"
-                                                wire:click="deletePage"
-                                                wire:confirm="Are you sure you want to delete this page? This action cannot be undone."
-                                                class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                            <span wire:loading.remove wire:target="deletePage">Delete Page</span>
-                                            <span wire:loading wire:target="deletePage">Deleting...</span>
-                                        </button>
                                     </div>
                                 </div>
                             </div>

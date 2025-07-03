@@ -13,9 +13,15 @@ class CategoryIndex extends Component
 
     #[Url]
     public $search = '';
-    
+
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
+
+    // Modal state properties
+    public $showDeleteModal = false;
+    public $categoryToDelete = null;
+    public $categoryToDeleteTitle = '';
+    public $categoryToDeletePostsCount = 0;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -36,25 +42,47 @@ class CategoryIndex extends Component
         $this->sortField = $field;
     }
 
-    public function delete($categoryId)
+    public function confirmDelete($categoryId)
+    {
+        $category = Category::withCount('posts')->find($categoryId);
+        if ($category) {
+            $this->categoryToDelete = $categoryId;
+            $this->categoryToDeleteTitle = $category->name;
+            $this->categoryToDeletePostsCount = $category->posts_count;
+            $this->showDeleteModal = true;
+        }
+    }
+
+    public function deleteCategory()
     {
         try {
-            $category = Category::findOrFail($categoryId);
-            
+            $category = Category::withCount('posts')->findOrFail($this->categoryToDelete);
+
             // Check if category has posts
-            if ($category->posts()->count() > 0) {
+            if ($category->posts_count > 0) {
                 session()->flash('error', 'Cannot delete category with associated posts.');
+                $this->closeDeleteModal();
                 return;
             }
-            
+
             $category->delete();
             session()->flash('message', 'Category deleted successfully.');
+            $this->closeDeleteModal();
 
             // Refresh the component to update the list
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to delete category. Please try again.');
+            $this->closeDeleteModal();
         }
+    }
+
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->categoryToDelete = null;
+        $this->categoryToDeleteTitle = '';
+        $this->categoryToDeletePostsCount = 0;
     }
 
     public function render()

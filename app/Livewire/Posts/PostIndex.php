@@ -25,6 +25,17 @@ class PostIndex extends Component
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
+    // Modal state properties
+    public $showDeleteModal = false;
+    public $postToDelete = null;
+    public $postToDeleteTitle = '';
+    
+    // Status change modal properties
+    public $showStatusModal = false;
+    public $postToChangeStatus = null;
+    public $postToChangeStatusTitle = '';
+    public $newStatus = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
@@ -56,39 +67,82 @@ class PostIndex extends Component
         $this->sortField = $field;
     }
 
-    public function deletePost($postId)
+    public function confirmDelete($postId)
     {
-        // Check permission before allowing delete
+        // Check permission before showing modal
         if (!Auth::user()->hasPermission('posts.delete') && !Auth::user()->isSuperAdmin()) {
             session()->flash('error', 'You do not have permission to delete posts.');
             return;
         }
 
+        $post = Post::find($postId);
+        if ($post) {
+            $this->postToDelete = $postId;
+            $this->postToDeleteTitle = $post->title;
+            $this->showDeleteModal = true;
+        }
+    }
+
+    public function deletePost()
+    {
+        // Double-check permission
+        if (!Auth::user()->hasPermission('posts.delete') && !Auth::user()->isSuperAdmin()) {
+            session()->flash('error', 'You do not have permission to delete posts.');
+            $this->closeDeleteModal();
+            return;
+        }
+
         try {
-            $post = Post::findOrFail($postId);
+            $post = Post::findOrFail($this->postToDelete);
             $post->delete();
 
             session()->flash('message', 'Post deleted successfully.');
+            $this->closeDeleteModal();
 
             // Refresh the component to update the list
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to delete post. Please try again.');
+            $this->closeDeleteModal();
         }
     }
 
-    public function toggleStatus($postId)
+    public function closeDeleteModal()
     {
-        // Check permission before allowing status change
+        $this->showDeleteModal = false;
+        $this->postToDelete = null;
+        $this->postToDeleteTitle = '';
+    }
+
+    public function confirmStatusChange($postId)
+    {
+        // Check permission before showing modal
         if (!Auth::user()->hasPermission('posts.edit') && !Auth::user()->isSuperAdmin()) {
             session()->flash('error', 'You do not have permission to edit posts.');
             return;
         }
 
+        $post = Post::find($postId);
+        if ($post) {
+            $this->postToChangeStatus = $postId;
+            $this->postToChangeStatusTitle = $post->title;
+            $this->newStatus = $post->status === 'published' ? 'draft' : 'published';
+            $this->showStatusModal = true;
+        }
+    }
+
+    public function changePostStatus()
+    {
+        // Double-check permission
+        if (!Auth::user()->hasPermission('posts.edit') && !Auth::user()->isSuperAdmin()) {
+            session()->flash('error', 'You do not have permission to edit posts.');
+            $this->closeStatusModal();
+            return;
+        }
+
         try {
-            $post = Post::findOrFail($postId);
-            $oldStatus = $post->status;
-            $post->status = $post->status === 'published' ? 'draft' : 'published';
+            $post = Post::findOrFail($this->postToChangeStatus);
+            $post->status = $this->newStatus;
 
             // Set published_at when publishing
             if ($post->status === 'published' && !$post->published_at) {
@@ -101,12 +155,29 @@ class PostIndex extends Component
             $action = $post->status === 'published' ? 'published' : 'unpublished';
             session()->flash('message', "Post '{$post->title}' has been {$action} successfully.");
 
+            $this->closeStatusModal();
+
             // Add a small delay to ensure UI updates are visible
-            $this->dispatch('post-status-updated', ['postId' => $postId, 'newStatus' => $post->status]);
+            $this->dispatch('post-status-updated', ['postId' => $this->postToChangeStatus, 'newStatus' => $post->status]);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to update post status. Please try again.');
+            $this->closeStatusModal();
         }
+    }
+
+    public function closeStatusModal()
+    {
+        $this->showStatusModal = false;
+        $this->postToChangeStatus = null;
+        $this->postToChangeStatusTitle = '';
+        $this->newStatus = '';
+    }
+
+    public function toggleStatus($postId)
+    {
+        // This method is now replaced by confirmStatusChange
+        $this->confirmStatusChange($postId);
     }
 
     public function canCreate()

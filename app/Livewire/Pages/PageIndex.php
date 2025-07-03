@@ -6,6 +6,7 @@ use App\Models\Page;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
+use Illuminate\Support\Facades\Auth;
 
 class PageIndex extends Component
 {
@@ -19,6 +20,17 @@ class PageIndex extends Component
 
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
+
+    // Modal state properties
+    public $showDeleteModal = false;
+    public $pageToDelete = null;
+    public $pageToDeleteTitle = '';
+    
+    // Status change modal properties
+    public $showStatusModal = false;
+    public $pageToChangeStatus = null;
+    public $pageToChangeStatusTitle = '';
+    public $newStatus = '';
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -45,40 +57,85 @@ class PageIndex extends Component
         $this->sortField = $field;
     }
 
-    public function deletePage($pageId)
+    public function confirmDelete($pageId)
+    {
+        $page = Page::find($pageId);
+        if ($page) {
+            $this->pageToDelete = $pageId;
+            $this->pageToDeleteTitle = $page->title;
+            $this->showDeleteModal = true;
+        }
+    }
+
+    public function deletePage()
     {
         try {
-            $page = Page::findOrFail($pageId);
+            $page = Page::findOrFail($this->pageToDelete);
             $page->delete();
 
             session()->flash('message', 'Page deleted successfully.');
+            $this->closeDeleteModal();
 
             // Refresh the component to update the list
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to delete page. Please try again.');
+            $this->closeDeleteModal();
         }
     }
 
-    public function toggleStatus($pageId)
+    public function closeDeleteModal()
+    {
+        $this->showDeleteModal = false;
+        $this->pageToDelete = null;
+        $this->pageToDeleteTitle = '';
+    }
+
+    public function confirmStatusChange($pageId)
+    {
+        $page = Page::find($pageId);
+        if ($page) {
+            $this->pageToChangeStatus = $pageId;
+            $this->pageToChangeStatusTitle = $page->title;
+            $this->newStatus = $page->status === 'published' ? 'draft' : 'published';
+            $this->showStatusModal = true;
+        }
+    }
+
+    public function changePageStatus()
     {
         try {
-            $page = Page::findOrFail($pageId);
-            $oldStatus = $page->status;
-            $page->status = $page->status === 'published' ? 'draft' : 'published';
-
+            $page = Page::findOrFail($this->pageToChangeStatus);
+            $page->status = $this->newStatus;
             $page->save();
 
             // Create more descriptive flash message
             $action = $page->status === 'published' ? 'published' : 'unpublished';
             session()->flash('message', "Page '{$page->title}' has been {$action} successfully.");
 
+            $this->closeStatusModal();
+
             // Add event dispatch for better UI updates
-            $this->dispatch('page-status-updated', ['pageId' => $pageId, 'newStatus' => $page->status]);
+            $this->dispatch('page-status-updated', ['pageId' => $this->pageToChangeStatus, 'newStatus' => $page->status]);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to update page status. Please try again.');
+            $this->closeStatusModal();
         }
+    }
+
+    public function closeStatusModal()
+    {
+        $this->showStatusModal = false;
+        $this->pageToChangeStatus = null;
+        $this->pageToChangeStatusTitle = '';
+        $this->newStatus = '';
+    }
+
+    public function toggleStatus($pageId)
+    {
+        // This method is now replaced by confirmStatusChange
+        $this->confirmStatusChange($pageId);
     }
 
     public function render()
