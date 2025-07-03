@@ -24,6 +24,17 @@ class UserIndex extends Component
     public $sortField = 'created_at';
     public $sortDirection = 'desc';
 
+    // Modal state properties
+    public $showDeleteModal = false;
+    public $userToDelete = null;
+    public $userToDeleteName = '';
+    
+    // Status change modal properties
+    public $showStatusModal = false;
+    public $userToChangeStatus = null;
+    public $userToChangeStatusName = '';
+    public $newStatus = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
         'roleFilter' => ['except' => ''],
@@ -55,11 +66,10 @@ class UserIndex extends Component
         $this->sortField = $field;
     }
 
-    public function deleteUser($userId)
+    public function confirmDelete($userId)
     {
-        try {
-            $user = User::findOrFail($userId);
-
+        $user = User::find($userId);
+        if ($user) {
             // Prevent deletion of current user
             if ($user->id === auth()->id()) {
                 session()->flash('error', 'You cannot delete your own account.');
@@ -72,20 +82,53 @@ class UserIndex extends Component
                 return;
             }
 
+            $this->userToDelete = $userId;
+            $this->userToDeleteName = $user->name;
+            $this->showDeleteModal = true;
+        }
+    }
+
+    public function deleteUser()
+    {
+        try {
+            $user = User::findOrFail($this->userToDelete);
+
+            // Double-check permissions
+            if ($user->id === auth()->id()) {
+                session()->flash('error', 'You cannot delete your own account.');
+                $this->closeDeleteModal();
+                return;
+            }
+
+            if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+                session()->flash('error', 'You cannot delete a superadmin user.');
+                $this->closeDeleteModal();
+                return;
+            }
+
+            $userName = $user->name;
             $user->delete();
-            session()->flash('message', 'User deleted successfully.');
+            session()->flash('message', "User '{$userName}' has been deleted successfully.");
+            $this->closeDeleteModal();
 
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
             session()->flash('error', 'Failed to delete user. Please try again.');
+            $this->closeDeleteModal();
         }
     }
 
-    public function toggleStatus($userId)
+    public function closeDeleteModal()
     {
-        try {
-            $user = User::findOrFail($userId);
+        $this->showDeleteModal = false;
+        $this->userToDelete = null;
+        $this->userToDeleteName = '';
+    }
 
+    public function confirmStatusChange($userId)
+    {
+        $user = User::find($userId);
+        if ($user) {
             // Prevent deactivating current user
             if ($user->id === auth()->id()) {
                 session()->flash('error', 'You cannot deactivate your own account.');
@@ -98,13 +141,56 @@ class UserIndex extends Component
                 return;
             }
 
-            $user->update(['is_active' => !$user->is_active]);
-            session()->flash('message', 'User status updated successfully.');
+            $this->userToChangeStatus = $userId;
+            $this->userToChangeStatusName = $user->name;
+            $this->newStatus = $user->is_active ? 'inactive' : 'active';
+            $this->showStatusModal = true;
+        }
+    }
 
+    public function changeUserStatus()
+    {
+        try {
+            $user = User::findOrFail($this->userToChangeStatus);
+
+            // Double-check permissions
+            if ($user->id === auth()->id()) {
+                session()->flash('error', 'You cannot deactivate your own account.');
+                $this->closeStatusModal();
+                return;
+            }
+
+            if ($user->isSuperAdmin() && !auth()->user()->isSuperAdmin()) {
+                session()->flash('error', 'You cannot deactivate a superadmin user.');
+                $this->closeStatusModal();
+                return;
+            }
+
+            $user->update(['is_active' => !$user->is_active]);
+            
+            $action = $user->is_active ? 'activated' : 'deactivated';
+            session()->flash('message', "User '{$user->name}' has been {$action} successfully.");
+            
+            $this->closeStatusModal();
             $this->dispatch('$refresh');
         } catch (\Exception $e) {
-            session()->flash('error', 'Failed to update user status.');
+            session()->flash('error', 'Failed to update user status. Please try again.');
+            $this->closeStatusModal();
         }
+    }
+
+    public function closeStatusModal()
+    {
+        $this->showStatusModal = false;
+        $this->userToChangeStatus = null;
+        $this->userToChangeStatusName = '';
+        $this->newStatus = '';
+    }
+
+    public function toggleStatus($userId)
+    {
+        // This method is now replaced by confirmStatusChange
+        $this->confirmStatusChange($userId);
     }
 
     public function render()

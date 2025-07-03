@@ -1,4 +1,7 @@
 <div>
+    <!-- Flash Notifications -->
+    <x-flash-notifications />
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -10,19 +13,6 @@
                             Create New User
                         </a>
                     </div>
-
-                    <!-- Flash Messages -->
-                    @if (session()->has('message'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                            {{ session('message') }}
-                        </div>
-                    @endif
-
-                    @if (session()->has('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                            {{ session('error') }}
-                        </div>
-                    @endif
 
                     <!-- Filters -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -105,7 +95,7 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse($users as $user)
-                                    <tr class="hover:bg-gray-50">
+                                    <tr class="hover:bg-gray-50" wire:key="user-{{ $user->id }}">
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <div class="text-sm font-medium text-gray-900">{{ $user->name }}</div>
                                         </td>
@@ -123,11 +113,10 @@
                                                 @endforelse
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <button wire:click="toggleStatus({{ $user->id }})" 
-                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap" wire:key="status-{{ $user->id }}">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors duration-200 {{ $user->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                                 {{ $user->is_active ? 'Active' : 'Inactive' }}
-                                            </button>
+                                            </span>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $user->created_at->format('M d, Y') }}
@@ -135,11 +124,16 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-2">
                                                 <a href="{{ route('users.edit', $user) }}" 
-                                                   class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                                   class="text-indigo-600 hover:text-indigo-900 transition-colors duration-200">Edit</a>
+                                                
+                                                <button wire:click="confirmStatusChange({{ $user->id }})"
+                                                        class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
+                                                
                                                 @if($user->id !== auth()->id())
-                                                    <button wire:click="deleteUser({{ $user->id }})" 
-                                                            wire:confirm="Are you sure you want to delete this user?"
-                                                            class="text-red-600 hover:text-red-900">Delete</button>
+                                                    <button wire:click="confirmDelete({{ $user->id }})" 
+                                                            class="text-red-600 hover:text-red-900 transition-colors duration-200">Delete</button>
                                                 @endif
                                             </div>
                                         </td>
@@ -163,4 +157,25 @@
             </div>
         </div>
     </div>
+
+    <!-- Delete Modal -->
+    <x-delete-modal 
+        :show="$showDeleteModal"
+        title="Delete User"
+        message="Are you sure you want to delete this user?"
+        :itemName="$userToDeleteName ?? ''"
+        deleteMethod="deleteUser"
+        closeMethod="closeDeleteModal" />
+
+    <!-- Status Modal -->
+    @if($showStatusModal && $newStatus)
+        <x-status-modal 
+            :show="$showStatusModal"
+            :title="ucfirst($newStatus === 'active' ? 'Activate' : 'Deactivate') . ' User'"
+            :message="'Are you sure you want to ' . ($newStatus === 'active' ? 'activate' : 'deactivate') . ' this user?'"
+            :itemName="$userToChangeStatusName ?? ''"
+            :newStatus="$newStatus"
+            statusMethod="changeUserStatus"
+            closeMethod="closeStatusModal" />
+    @endif
 </div>

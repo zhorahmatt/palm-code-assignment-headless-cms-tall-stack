@@ -1,4 +1,24 @@
 <div>
+    <!-- Add Delete Modal at the end -->
+    <x-delete-modal
+        :show="$showDeleteModal"
+        title="Delete Permission"
+        message="Are you sure you want to delete the permission"
+        :itemName="$permissionToDeleteName"
+        deleteMethod="deletePermission"
+        closeMethod="closeDeleteModal"
+    />
+
+    <!-- Flash Messages -->
+    <x-flash-notifications />
+{{--
+    @if(config('app.debug'))
+        <div class="fixed top-0 right-0 bg-red-500 text-white p-2 z-50">
+            Modal State: {{ $showDeleteModal ? 'true' : 'false' }}<br>
+            Permission ID: {{ $permissionToDelete ?? 'null' }}<br>
+            Permission Name: {{ $permissionToDeleteName ?? 'null' }}
+        </div>
+    @endif --}}
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -7,23 +27,10 @@
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold text-gray-800">Permissions Management</h2>
                         <a href="{{ route('permissions.create') }}"
-                           class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             Add New Permission
                         </a>
                     </div>
-
-                    <!-- Flash Messages -->
-                    @if (session()->has('message'))
-                        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                            {{ session('message') }}
-                        </div>
-                    @endif
-
-                    @if (session()->has('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                            {{ session('error') }}
-                        </div>
-                    @endif
 
                     <!-- Search and Filters -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -31,10 +38,10 @@
                         <div class="md:col-span-2">
                             <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search Permissions</label>
                             <input type="text"
-                                   id="search"
-                                   wire:model.live.debounce.300ms="search"
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                   placeholder="Search by name, display name, or description...">
+                                id="search"
+                                wire:model.live.debounce.300ms="search"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Search by name, display name, or description...">
                         </div>
 
                         <!-- Group Filter -->
@@ -153,12 +160,11 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-2">
                                                 <a href="{{ route('permissions.edit', $permission) }}"
-                                                   class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
+                                                    class="text-blue-600 hover:text-blue-900 transition-colors duration-200">
                                                     Edit
                                                 </a>
                                                 @if($permission->roles_count == 0)
-                                                    <button wire:click="delete({{ $permission->id }})"
-                                                            wire:confirm="Are you sure you want to delete this permission? This action cannot be undone."
+                                                    <button wire:click="confirmDelete({{ $permission->id }})"
                                                             class="text-red-600 hover:text-red-900 transition-colors duration-200">
                                                         Delete
                                                     </button>
@@ -188,7 +194,7 @@
                                                 @if(!$search && !$groupFilter)
                                                     <div class="mt-6">
                                                         <a href="{{ route('permissions.create') }}"
-                                                           class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                                                            class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                                                             Add New Permission
                                                         </a>
                                                     </div>
@@ -240,3 +246,12 @@
         </div>
     </div>
 </div>
+
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('console-log', (message) => {
+            console.log('Livewire Debug:', message);
+        });
+    });
+</script>

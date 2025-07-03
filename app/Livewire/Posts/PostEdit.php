@@ -112,9 +112,4 @@ class PostEdit extends Component
             'categories' => $categories,
         ]);
     }
-
-    public function removeCurrentImage()
-    {
-        $this->existing_image = null;
-    }
 }

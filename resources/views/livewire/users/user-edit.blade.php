@@ -146,21 +146,13 @@
                                             Cancel
                                         </a>
 
-                                        @if($user->id !== auth()->id() && (!$user->isSuperAdmin() || auth()->user()->isSuperAdmin()))
-                                            <button type="button"
-                                                    wire:click="delete"
-                                                    wire:confirm="Are you sure you want to delete this user? This action cannot be undone."
-                                                    class="w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                                                Delete User
-                                            </button>
-                                        @endif
                                     </div>
                                 </div>
 
                                 <!-- User Settings -->
                                 <div class="bg-gray-50 p-4 rounded-lg">
                                     <h3 class="text-lg font-medium text-gray-900 mb-4">User Settings</h3>
-                                    
+
                                     <div class="space-y-3">
                                         <!-- Active Status -->
                                         <label class="flex items-center space-x-3">

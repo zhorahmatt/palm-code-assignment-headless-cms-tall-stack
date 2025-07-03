@@ -173,20 +173,6 @@
                                 <div class="bg-gray-50 p-4 rounded-lg">
                                     <h3 class="text-lg font-medium text-gray-900 mb-4">Featured Image</h3>
 
-                                    <!-- Current Image -->
-                                    @if($post->image && !$image)
-                                        <div class="mb-4">
-                                            <img src="{{ Storage::url($post->image) }}"
-                                                 alt="Current featured image"
-                                                 class="w-full h-32 object-cover rounded-lg">
-                                            <button type="button"
-                                                    wire:click="removeCurrentImage"
-                                                    class="mt-2 text-sm text-red-600 hover:text-red-800">
-                                                Remove current image
-                                            </button>
-                                        </div>
-                                    @endif
-
                                     <div class="mb-4">
                                         <input type="file"
                                                wire:model="image"
@@ -196,6 +182,15 @@
                                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
+                                    <!-- Current Image -->
+                                    @if($post->image && !$image)
+                                        <div class="mb-4">
+                                            <img src="{{ Storage::url($post->image) }}"
+                                                 alt="Current featured image"
+                                                 class="w-full h-32 object-cover rounded-lg">
+                                        </div>
+                                    @endif
+
 
                                     <!-- New Image Preview -->
                                     @if ($image)
@@ -250,10 +245,6 @@
                                                 <span>{{ $post->published_at->format('M d, Y') }}</span>
                                             </div>
                                         @endif
-                                        <div class="flex justify-between">
-                                            <span>Word Count:</span>
-                                            <span>{{ str_word_count(strip_tags($post->content)) }}</span>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
