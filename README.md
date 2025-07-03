@@ -29,10 +29,12 @@
 
 ## 🌐 Live Demo
 
-**Coming Soon**: Live preview will be available at [https://palm-code.thuuba.com/api/documentation]
+**Live Preview**: Live preview available at [https://palm-code.thuuba.com/api/documentation]
 
 **Demo Credentials**:
 - **Super Admin**: admin@example.com / password
+
+**Documentations**: API Documentation available at [https://palm-code.thuuba.com/api/documentation]
 
 ## 📋 Prerequisites
 
