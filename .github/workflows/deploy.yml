@@ -90,6 +90,7 @@ jobs:
         port: ${{ secrets.PORT || 22 }}
         source: "deployment.tar.gz"
         target: "/tmp/"
+        debug: true
 
     - name: Deploy application
       uses: appleboy/ssh-action@v1.0.3
