@@ -26,4 +26,15 @@ class Permission extends Model
     {
         return $this->belongsToMany(Role::class);
     }
+
+    protected static function booted()
+    {
+        static::saved(function () {
+            \App\Http\Middleware\ResourcePermissionMiddleware::clearPermissionsCache();
+        });
+        
+        static::deleted(function () {
+            \App\Http\Middleware\ResourcePermissionMiddleware::clearPermissionsCache();
+        });
+    }
 }
